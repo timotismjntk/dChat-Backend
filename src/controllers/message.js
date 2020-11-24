@@ -10,7 +10,7 @@ module.exports = {
   getAllMessages: async (req, res) => {
     const { id } = req.user
     const { offset = 0 } = req.query
-    const panjang = await Message.findAll({
+    const panjang = await Message.count({
       where: {
         [Op.or]: [
           {
@@ -21,41 +21,47 @@ module.exports = {
         ]
       }
     })
-    const page = pagination(req, panjang.length)
+    const messageUnread = await Message.count({
+      where: {
+        recipient_id: id,
+        isRead: 0
+      }
+    })
+    const page = pagination(req, panjang)
     const { pageInfo } = page
     const { limitData } = pageInfo
-    const results = await Message.findAll({
-      include: [{
-        model: User,
-        as: 'Recipient',
-        attributes: {
-          exclude: ['password', 'email', 'phone_number', 'reset_code', 'createdAt', 'updatedAt']
-        }
-      },
-      {
-        model: User,
-        as: 'Sender',
-        attributes: {
-          exclude: ['password', 'email', 'phone_number', 'reset_code', 'createdAt', 'updatedAt']
-        }
-      }
-      ],
-      where: {
-        [Op.or]: [
-          {
-            recipient_id: id
-          }, {
-            sender_id: id
+    const recipient = await Message.findAll({
+      include: [
+      //   {
+      //   model: User,
+      //   as: 'To',
+      //   attributes: {
+      //     exclude: ['password', 'email', 'phone_number', 'reset_code', 'createdAt', 'updatedAt']
+      //   }
+      // },
+        {
+          model: User,
+          as: 'From',
+          attributes: {
+            exclude: ['password', 'email', 'phone_number', 'reset_code', 'createdAt', 'updatedAt']
           }
-        ]
-      },
+        }
+      ],
+      where: { recipient_id: id },
+      group: ['sender_id'],
       attributes: {
         include: [
           [
             Sequelize.literal(`(
-              SELECT CONCAT(SUBSTRING(content, 1, 20), '...')
+              SELECT CASE when COUNT(content) > 28 THEN CONCAT(SUBSTRING(content, 1, 20), '...') ELSE content END
             )`),
-            'content'
+            'chat'
+          ],
+          [
+            Sequelize.literal(`(
+              SELECT sum(isRead = 0) WHERE recipient_id = ${id}
+            )`),
+            'messageUnread'
           ]
         ],
         exclude: ['content']
@@ -66,10 +72,10 @@ module.exports = {
         ['last_sent', 'desc']
       ]
     })
-    if (results.length > 0) {
-      return response(res, 'List of All Messages', { results, pageInfo })
+    if (recipient.length > 0) {
+      return response(res, 'List of All Messages', { recipient, pageInfo })
     } else {
-      return response(res, 'You dont have any messages', { results })
+      return response(res, 'You dont have any messages', {})
     }
   },
   getMessages: async (req, res) => {
@@ -82,14 +88,17 @@ module.exports = {
     console.log(id)
     const results = await Message.findAll({
       include: [
-      //   {
-      //   model: User,
-      //   as: 'Recipient'
-      // },
         {
           model: User,
-          as: 'Sender'
+          as: 'To'
+        },
+        {
+          model: User,
+          as: 'From'
         }],
+      attributes: {
+        exclude: ['createdAt', 'updatedAt']
+      },
       where: {
         [Op.or]: [
           {
@@ -112,31 +121,61 @@ module.exports = {
       } catch (e) {
         return response(res, e.message, {}, 400, false)
       }
-      const newResults = await Message.findAll({
+      const sender = await Message.findAll({
         include: [
           {
             model: User,
-            as: 'Recipient',
+            as: 'To',
             attributes: {
               exclude: ['password', 'email', 'phone_number', 'reset_code', 'createdAt', 'updatedAt']
             }
           },
           {
             model: User,
-            as: 'Sender',
+            as: 'From',
             attributes: {
               exclude: ['password', 'email', 'phone_number', 'reset_code', 'createdAt', 'updatedAt']
             }
           }],
+        attributes: {
+          exclude: ['createdAt', 'updatedAt']
+        },
         where: {
-          recipient_id: id
-          // sender_id: id
+          recipient_id: id,
+          sender_id: Number(recieptId)
         },
         order: [
           ['last_sent', 'desc']
         ]
       })
-      return response(res, 'Detail Message', { results: newResults })
+      const recipient = await Message.findAll({
+        include: [
+          {
+            model: User,
+            as: 'To',
+            attributes: {
+              exclude: ['password', 'email', 'phone_number', 'reset_code', 'createdAt', 'updatedAt']
+            }
+          },
+          {
+            model: User,
+            as: 'From',
+            attributes: {
+              exclude: ['password', 'email', 'phone_number', 'reset_code', 'createdAt', 'updatedAt']
+            }
+          }],
+        attributes: {
+          exclude: ['createdAt', 'updatedAt']
+        },
+        where: {
+          recipient_id: recieptId,
+          sender_id: Number(id)
+        },
+        order: [
+          ['last_sent', 'desc']
+        ]
+      })
+      return response(res, 'Detail Message', { data: { sender, recipient } })
     } else {
       return response(res, 'It\'s look like you dont have any message', { results })
     }

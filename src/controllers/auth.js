@@ -91,59 +91,49 @@ module.exports = {
     }
   },
   signUpWithPhoneNumber: (req, res) => {
-    const schema = joi.object({
-      username: joi.string().required(),
-      password: joi.string().required(),
-      phone_number: joi.string().required()
-    })
-    const { value: results, error } = schema.validate(req.body)
-    if (error) {
-      return response(res, 'Error', { error: error.message }, 400, false)
-    } else {
-      let { username, password, phone_number } = results
-      multerHelper(req, res, async function (err) {
-        if (err instanceof multer.MulterError) {
-          if (err.code === 'LIMIT_UNEXPECTED_FILE' && req.file.length === 0) {
-            fs.unlinkSync('assets/uploads/' + req.file.filename)
-            return response(res, 'fieldname doesnt match', {}, 500, false)
-          }
-          // fs.unlinkSync('assets/uploads' + req.file)
-          return response(res, err.message, {}, 500, false)
-        } else if (err) {
+    let { username, password, phone_number } = req.body
+    multerHelper(req, res, async function (err) {
+      if (err instanceof multer.MulterError) {
+        if (err.code === 'LIMIT_UNEXPECTED_FILE' && req.file.length === 0) {
           fs.unlinkSync('assets/uploads/' + req.file.filename)
-          return response(res, err.message, {}, 401, false)
+          return response(res, 'fieldname doesnt match', {}, 500, false)
         }
-        try {
-          password = await bcrypt.hash(password, await bcrypt.genSalt())
-          let data = {}
-          if (req.file) {
-            data = {
-              username,
-              password,
-              phone_number,
-              profile_image: req.file
-            }
-          } else {
-            data = {
-              username,
-              password,
-              phone_number
-            }
-            const isExist = await User.findOne({ where: { password } })
-            // console.log(isExist === null)
-            if (isExist !== null) {
-              return response(res, 'Error phone number has been registered, please login with it,', {}, 400, false)
-            } else {
-              console.log(data)
-              const results = await User.create(data)
-              return response(res, 'User created successfully', { results })
-            }
+        // fs.unlinkSync('assets/uploads' + req.file)
+        return response(res, err.message, {}, 500, false)
+      } else if (err) {
+        fs.unlinkSync('assets/uploads/' + req.file.filename)
+        return response(res, err.message, {}, 401, false)
+      }
+      try {
+        password = await bcrypt.hash(password, await bcrypt.genSalt())
+        let data = {}
+        if (req.file) {
+          data = {
+            username,
+            password,
+            phone_number,
+            profile_image: req.file
           }
-        } catch (e) {
-          return response(res, e.message, {}, 500, false)
+        } else {
+          data = {
+            username,
+            password,
+            phone_number
+          }
+          const isExist = await User.findOne({ where: { password } })
+          // console.log(isExist === null)
+          if (isExist !== null) {
+            return response(res, 'Error phone number has been registered, please login with it,', {}, 400, false)
+          } else {
+            console.log(data)
+            const results = await User.create(data)
+            return response(res, 'User created successfully', { results })
+          }
         }
-      })
-    }
+      } catch (e) {
+        return response(res, e.message, {}, 500, false)
+      }
+    })
   },
   loginWithPhoneNumber: async (req, res) => {
     const schema = joi.object({
