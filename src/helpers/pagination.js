@@ -5,7 +5,7 @@ const {
 
 module.exports = {
   pagination: (req, totalData) => {
-    let { page = 1, limit = 10 } = req.query
+    let { page = 1, limit = 2 } = req.query
     limit = parseInt(limit)
     page = parseInt(page)
     if (page < 1) {
@@ -15,7 +15,7 @@ module.exports = {
       limit = 5
     }
     const totalPage = Math.ceil(totalData / limit)
-    console.log(totalPage)
+    // console.log(totalPage)
 
     const path = req.originalUrl.slice(1).split('?')[0]
     const prev = qs.stringify({ ...req.query, ...{ page: page - 1 } })

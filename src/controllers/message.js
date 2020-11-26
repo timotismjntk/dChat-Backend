@@ -1,5 +1,9 @@
 const response = require('../helpers/responseStandard')
-const { pagination } = require('../helpers/pagination')
+const qs = require('querystring')
+const {
+  APP_URL,
+  APP_PORT
+} = process.env
 const { Op } = require('sequelize')
 const { Message, User } = require('../models')
 const multer = require('multer')
@@ -9,175 +13,219 @@ const Sequelize = require('sequelize')
 module.exports = {
   getAllMessages: async (req, res) => {
     const { id } = req.user
-    const { offset = 0 } = req.query
-    const panjang = await Message.count({
+    let { search, orderBy, limit = 10, page = 1 } = req.query
+    limit = Number(limit)
+    page = Number(page)
+    if (page < 1) {
+      page = 1
+    }
+    const pageInfo = {
+      currentPage: page,
+      totalPage: 0,
+      totalData: 2,
+      limitData: limit,
+      prevLink: null,
+      nextLink: null
+    }
+
+    const count = await Message.count({
       where: {
-        [Op.or]: [
-          {
-            recipient_id: id
-          }, {
-            sender_id: id
-          }
-        ]
+        [Op.or]: {
+          sender_id: id,
+          recipient_id: id
+        },
+        isLatest: 1
       }
     })
-    const messageUnread = await Message.count({
-      where: {
-        recipient_id: id,
-        isRead: 0
-      }
-    })
-    const page = pagination(req, panjang)
-    const { pageInfo } = page
-    const { limitData } = pageInfo
-    const recipient = await Message.findAll({
-      include: [
-      //   {
-      //   model: User,
-      //   as: 'To',
-      //   attributes: {
-      //     exclude: ['password', 'email', 'phone_number', 'reset_code', 'createdAt', 'updatedAt']
-      //   }
-      // },
-        {
-          model: User,
-          as: 'From',
-          attributes: {
-            exclude: ['password', 'email', 'phone_number', 'reset_code', 'createdAt', 'updatedAt']
-          }
-        }
-      ],
-      where: { recipient_id: id },
-      group: ['sender_id'],
-      attributes: {
+    pageInfo.totalData = count
+    pageInfo.totalPage = Math.ceil(count / limit)
+    const path = req.originalUrl.slice(1).split('?')[0]
+    const prev = qs.stringify({ ...req.query, ...{ page: page - 1 } })
+    const next = qs.stringify({ ...req.query, ...{ page: page + 1 } })
+    pageInfo.prevLink = page > 1 ? `${APP_URL}:${APP_PORT}/${path}?${prev}` : null
+    pageInfo.nextLink = page < pageInfo.totalPage ? `${APP_URL}:${APP_PORT}/${path}?${next}` : null
+    let message = {}
+    try {
+      message = await Message.findAll({
         include: [
-          [
-            Sequelize.literal(`(
-              SELECT CASE when COUNT(content) > 28 THEN CONCAT(SUBSTRING(content, 1, 20), '...') ELSE content END
-            )`),
-            'chat'
-          ],
-          [
-            Sequelize.literal(`(
-              SELECT sum(isRead = 0) WHERE recipient_id = ${id}
-            )`),
-            'messageUnread'
-          ]
+          {
+            model: User,
+            as: 'To',
+            attributes: {
+              exclude: ['password', 'reset_code', 'createdAt', 'updatedAt']
+            }
+          },
+          {
+            model: User,
+            as: 'From',
+            attributes: {
+              exclude: ['password', 'reset_code', 'createdAt', 'updatedAt']
+            }
+          }
         ],
-        exclude: ['content']
-      },
-      limit: limitData,
-      offset: offset,
-      order: [
-        ['last_sent', 'desc']
-      ]
-    })
-    if (recipient.length > 0) {
-      return response(res, 'List of All Messages', { recipient, pageInfo })
+        attributes: {
+          include: [
+            [
+              Sequelize.literal(`(
+              IF(LENGTH(content) > 28, CONCAT(SUBSTRING(content, 1, 28), "..."), content) 
+            )`),
+              'chat'
+            ],
+            [
+              Sequelize.literal(`(
+                SELECT CASE when sender_id = ${id} THEN 'true' ELSE 'false' END
+              )`),
+              'isSendByUser'
+            ]
+            // [
+            //   Sequelize.literal(`(
+            //     SELECT SUM(isRead=0) WHERE recipient_id = ${id} GROUP BY sender_id
+            //   )`),
+            //   'messageUnread'
+            // ]
+          ],
+          exclude: ['content']
+        },
+        where: {
+          [Op.or]: {
+            sender_id: id,
+            recipient_id: id
+          },
+          isLatest: 1
+        },
+        // group: ['sender_id'],
+        limit: limit,
+        offset: (page - 1) * limit,
+        order: [['last_sent', 'DESC']]
+      })
+    } catch (e) {
+      return response(res, e.message, {}, 400, false)
+    }
+
+    if (message.length > 0) {
+      let count = 0
+      try {
+        count = await Message.count({
+          where: {
+            [Op.or]: {
+              sender_id: id,
+              recipient_id: id
+            },
+            isLatest: 1
+          }
+        })
+      } catch (e) {
+        return response(res, e.message, {}, 400, false)
+      }
+      console.log(`berapa banyak: ${count}`)
+      return response(res, 'List of All Messages', { results: message, pageInfo })
     } else {
-      return response(res, 'You dont have any messages', {})
+      return response(res, 'You dont have any messages', { results: message })
     }
   },
   getMessages: async (req, res) => {
     const { id } = req.user
     const { recieptId } = req.params
-    const { offset = 0 } = req.query
-    const page = pagination(req)
-    const { pageInfo } = page
-    const { limitData } = pageInfo
-    console.log(id)
-    const results = await Message.findAll({
-      include: [
-        {
-          model: User,
-          as: 'To'
-        },
-        {
-          model: User,
-          as: 'From'
-        }],
-      attributes: {
-        exclude: ['createdAt', 'updatedAt']
-      },
+    console.log(`id teman ${recieptId}`)
+    let { search, orderBy, limit = 10, page = 1 } = req.query
+    limit = Number(limit)
+    page = Number(page)
+    if (page < 1) {
+      page = 1
+    }
+    const pageInfo = {
+      currentPage: page,
+      totalPage: 0,
+      totalData: 2,
+      limitData: limit,
+      prevLink: null,
+      nextLink: null
+    }
+    const count = await Message.count({
       where: {
-        [Op.or]: [
+        [Op.and]: [
           {
-            recipient_id: Number(recieptId),
-            sender_id: id
-          }, {
-            recipient_id: id,
-            sender_id: Number(recieptId)
+            [Op.or]: [
+              {
+                sender_id: id
+              },
+              {
+                recipient_id: id
+              }
+            ]
+          },
+          {
+            [Op.or]: [
+              {
+                sender_id: recieptId
+              },
+              {
+                recipient_id: recieptId
+              }
+            ]
           }
         ]
-      },
-      order: [
-        ['last_sent', 'asc']
-      ]
-    })
-    if (results.length > 0) {
-      try {
-        await Message.update({ isRead: 1 }, { where: { recipient_id: id } })
-        // await results.update({ last_active: new Date().getTime() })
-      } catch (e) {
-        return response(res, e.message, {}, 400, false)
       }
-      const sender = await Message.findAll({
-        include: [
-          {
-            model: User,
-            as: 'To',
-            attributes: {
-              exclude: ['password', 'email', 'phone_number', 'reset_code', 'createdAt', 'updatedAt']
-            }
-          },
-          {
-            model: User,
-            as: 'From',
-            attributes: {
-              exclude: ['password', 'email', 'phone_number', 'reset_code', 'createdAt', 'updatedAt']
-            }
-          }],
-        attributes: {
-          exclude: ['createdAt', 'updatedAt']
-        },
+    })
+    pageInfo.totalData = count
+    pageInfo.totalPage = Math.ceil(count / limit)
+    const path = req.originalUrl.slice(1).split('?')[0]
+    const prev = qs.stringify({ ...req.query, ...{ page: page - 1 } })
+    const next = qs.stringify({ ...req.query, ...{ page: page + 1 } })
+    pageInfo.prevLink = page > 1 ? `${APP_URL}:${APP_PORT}/${path}?${prev}` : null
+    pageInfo.nextLink = page < pageInfo.totalPage ? `${APP_URL}:${APP_PORT}/${path}?${next}` : null
+
+    let chatMessage = {}
+    try {
+      chatMessage = await Message.findAll({
         where: {
-          recipient_id: id,
-          sender_id: Number(recieptId)
-        },
-        order: [
-          ['last_sent', 'desc']
-        ]
-      })
-      const recipient = await Message.findAll({
-        include: [
-          {
-            model: User,
-            as: 'To',
-            attributes: {
-              exclude: ['password', 'email', 'phone_number', 'reset_code', 'createdAt', 'updatedAt']
+          [Op.and]: [
+            {
+              [Op.or]: [
+                {
+                  sender_id: id
+                },
+                {
+                  recipient_id: id
+                }
+              ]
+            },
+            {
+              [Op.or]: [
+                {
+                  sender_id: recieptId
+                },
+                {
+                  recipient_id: recieptId
+                }
+              ]
             }
-          },
-          {
-            model: User,
-            as: 'From',
-            attributes: {
-              exclude: ['password', 'email', 'phone_number', 'reset_code', 'createdAt', 'updatedAt']
-            }
-          }],
-        attributes: {
-          exclude: ['createdAt', 'updatedAt']
+          ]
         },
-        where: {
-          recipient_id: recieptId,
-          sender_id: Number(id)
-        },
-        order: [
-          ['last_sent', 'desc']
-        ]
+        order: [['last_sent', 'DESC']],
+        limit: limit,
+        offset: (page - 1) * limit
       })
-      return response(res, 'Detail Message', { data: { sender, recipient } })
+    } catch (e) {
+      return response(res, e.message, {}, 400, false)
+    }
+    let friendContact = {}
+    try {
+      friendContact = await User.findByPk(recieptId,
+        {
+          attributes: {
+            exclude: ['password', 'reset_code', 'createdAt', 'updatedAt']
+          }
+        }
+      )
+    } catch (e) {
+      return response(res, e.message, {}, 400, false)
+    }
+
+    if (chatMessage.length) {
+      return response(res, 'Detail of Chat Messages', { results: { chatMessage, friendContact }, pageInfo })
     } else {
-      return response(res, 'It\'s look like you dont have any message', { results })
+      return response(res, 'You dont have any messages', { results: { chatMessage, friendContact } })
     }
   },
   postMessage: async (req, res) => {
@@ -191,13 +239,24 @@ module.exports = {
       return response(res, 'Error', { error: error.message }, 400, false)
     } else {
       const { content, recipient_id } = results
+
+      await Message.update({ isLatest: 0 }, {
+        where: {
+          [Op.and]: [
+            { [Op.or]: [{ recipient_id: id }, { sender_id: id }] },
+            { [Op.or]: [{ recipient_id: recipient_id }, { sender_id: recipient_id }] }
+          ]
+        }
+      })
+
       try {
         const data = {
           sender_id: id,
           recipient_id,
           content,
           isRead: 0,
-          last_sent: new Date().getTime()
+          last_sent: new Date().getTime(),
+          isLatest: 1
         }
         const post = await Message.create(data)
         return response(res, 'Message sended successfully', { post })

@@ -26,7 +26,8 @@ module.exports = (sequelize, DataTypes) => {
     recipient_id: DataTypes.INTEGER,
     content: DataTypes.STRING,
     isRead: DataTypes.BOOLEAN,
-    last_sent: DataTypes.DATE
+    last_sent: DataTypes.DATE,
+    isLatest: DataTypes.BOOLEAN
   }, {
     sequelize,
     modelName: 'Message'

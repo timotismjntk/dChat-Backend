@@ -16,10 +16,12 @@ app.use('/uploads', express.static('assets/uploads'))
 const userRoute = require('./routes/user')
 const authRoute = require('./routes/auth')
 const messageRoute = require('./routes/message')
+const contactRoute = require('./routes/contact')
 
 app.use('/auth', authRoute)
 app.use('/users', userRoute)
 app.use('/message', messageRoute)
+app.use('/contact', contactRoute)
 
 app.get('/', (req, res) => {
   res.send({
