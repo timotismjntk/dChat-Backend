@@ -25,4 +25,4 @@ const fileFilter = (req, file, cb) => {
   return cb(new Error('Invalid file type. Only image files are allowed.'), false)
 }
 
-module.exports = multer({ storage, fileFilter, limits: { fileSize: 50000 } }).single('picture')
+module.exports = multer({ storage, fileFilter, limits: { fileSize: 500000 } }).single('picture')

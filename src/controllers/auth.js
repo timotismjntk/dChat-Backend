@@ -91,8 +91,8 @@ module.exports = {
     }
   },
   signUpWithPhoneNumber: (req, res) => {
-    let { username, password, phone_number } = req.body
     multerHelper(req, res, async function (err) {
+      const { username, password, phone_number } = req.body
       if (err instanceof multer.MulterError) {
         if (err.code === 'LIMIT_UNEXPECTED_FILE' && req.file.length === 0) {
           fs.unlinkSync('assets/uploads/' + req.file.filename)
@@ -105,19 +105,28 @@ module.exports = {
         return response(res, err.message, {}, 401, false)
       }
       try {
-        password = await bcrypt.hash(password, await bcrypt.genSalt())
-        let data = {}
+        const encryptPassword = await bcrypt.hash(password, await bcrypt.genSalt())
         if (req.file) {
-          data = {
+          const picture = `uploads/${req.file.filename}`
+          const data = {
             username,
-            password,
+            password: encryptPassword,
             phone_number,
-            profile_image: req.file
+            profile_image: picture
+          }
+          const isExist = await User.findOne({ where: { phone_number } })
+          // console.log(isExist === null)
+          if (isExist !== null) {
+            return response(res, 'Error phone number has been registered, please login with it,', {}, 400, false)
+          } else {
+            console.log(data)
+            const results = await User.create(data)
+            return response(res, 'User created successfully', { results })
           }
         } else {
-          data = {
+          const data = {
             username,
-            password,
+            password: encryptPassword,
             phone_number
           }
           const isExist = await User.findOne({ where: { password } })
@@ -148,7 +157,6 @@ module.exports = {
       try {
         const isExist = await User.findOne({ where: { phone_number } })
         if (isExist) {
-          console.log(isExist.dataValues)
           if (isExist.dataValues.password) {
             try {
               await bcrypt.compare(password, isExist.dataValues.password, (err, result) => {

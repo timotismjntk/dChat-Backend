@@ -25,17 +25,18 @@ module.exports = {
       username: joi.string(),
       email: joi.string(),
       password: joi.string(),
-      phone_number: joi.string()
+      phone_number: joi.string(),
+      unique_id: joi.string()
     })
     const { value: results, error } = schema.validate(req.body)
     if (error) {
       return response(res, 'Error', { error: error.message }, 400, false)
     } else {
-      const { username, email, password, phone_number } = results
+      const { username, email, password, phone_number, unique_id } = results
       const check = await User.findByPk(id)
       if (check) {
-        if (username || email || password || phone_number) {
-          const data = { username, email, phone_number }
+        if (username || email || password || phone_number || unique_id) {
+          const data = { username, email, phone_number, unique_id }
           try {
             await check.update(data)
             return response(res, 'User updated successfully', { check })
@@ -47,12 +48,9 @@ module.exports = {
             const salt = await bcrypt.genSalt()
             password = await bcrypt.hash(password, salt)
             const data = {
-              username,
-              email,
-              password,
-              phone_number
+              password
             }
-            await results.update(data)
+            await check.update(data)
             return response(res, 'User updated successfully', { results })
           } catch (err) {
             return response(res, err.message, {}, 400, false)
