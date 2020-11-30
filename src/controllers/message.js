@@ -9,6 +9,7 @@ const { Message, User } = require('../models')
 const multer = require('multer')
 const joi = require('joi')
 const Sequelize = require('sequelize')
+const io = require('../App')
 
 module.exports = {
   getAllMessages: async (req, res) => {
@@ -229,7 +230,7 @@ module.exports = {
     }
   },
   postMessage: async (req, res) => {
-    const { id } = req.user
+    const { id: sender_id } = req.user
     const schema = joi.object({
       recipient_id: joi.number().required(),
       content: joi.string().required()
@@ -243,7 +244,7 @@ module.exports = {
       await Message.update({ isLatest: 0 }, {
         where: {
           [Op.and]: [
-            { [Op.or]: [{ recipient_id: id }, { sender_id: id }] },
+            { [Op.or]: [{ recipient_id: sender_id }, { sender_id: sender_id }] },
             { [Op.or]: [{ recipient_id: recipient_id }, { sender_id: recipient_id }] }
           ]
         }
@@ -251,7 +252,7 @@ module.exports = {
 
       try {
         const data = {
-          sender_id: id,
+          sender_id,
           recipient_id,
           content,
           isRead: 0,
@@ -259,6 +260,8 @@ module.exports = {
           isLatest: 1
         }
         const post = await Message.create(data)
+        io.emit(recipient_id.toString(), { sender_id, content }) // konfigurasi socket io di bagian backend untuk kirim pesan
+
         return response(res, 'Message sended successfully', { post })
       } catch (error) {
         return response(res, error.message, {}, 500, false)

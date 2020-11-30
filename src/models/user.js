@@ -21,6 +21,10 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'friend_id',
         as: 'Friend'
       })
+      User.hasMany(models.Friendlist, {
+        foreignKey: 'user_id',
+        as: 'Self'
+      })
     }
   };
   User.init({

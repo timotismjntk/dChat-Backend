@@ -5,9 +5,12 @@ const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const joi = require('joi')
 const multer = require('multer')
+const { v4: uuidv4 } = require('uuid')
 const multerHelper = require('../helpers/uploadHelper')
 const fs = require('fs')
 const response = require('../helpers/responseStandard')
+const { Op } = require('sequelize')
+
 const {
   APP_KEY
 } = process.env
@@ -117,6 +120,7 @@ module.exports = {
           const isExist = await User.findOne({ where: { phone_number } })
           // console.log(isExist === null)
           if (isExist !== null) {
+            fs.unlinkSync('assets/uploads/' + req.file.filename)
             return response(res, 'Error phone number has been registered, please login with it,', {}, 400, false)
           } else {
             console.log(data)
@@ -140,6 +144,7 @@ module.exports = {
           }
         }
       } catch (e) {
+        fs.unlinkSync('assets/uploads/' + req.file.filename)
         return response(res, e.message, {}, 500, false)
       }
     })
@@ -170,7 +175,7 @@ module.exports = {
                     return response(res, { token }, {}, 200, true)
                   })
                 } else {
-                  return response(res, 'Password wrong!', {}, 400, false)
+                  return response(res, 'Old Password is wrong!', {}, 400, false)
                 }
               })
             } catch (e) {
@@ -184,6 +189,41 @@ module.exports = {
       } catch (e) {
         return response(res, e.message, {}, 500, false)
       }
+    }
+  },
+  getResetCode: async (req, res) => {
+    const { email } = req.body
+    const isExist = await User.findOne({ where: { email } })
+    if (isExist) {
+      let resetCode = uuidv4()
+      resetCode = resetCode.slice(0, 6)
+      const sendResetCode = await isExist.update({ reset_code: resetCode })
+      if (sendResetCode) {
+        return response(res, 'Reset Code sent successfully', { result: resetCode })
+      }
+    } else {
+      return response(res, 'Email isn\'t registered', {}, 404)
+    }
+  },
+  resetPasswordVerifiyResetCode: async (req, res) => {
+    const { reset_code, email } = req.body
+    console.log(reset_code)
+    const isResetCodeMatch = await User.findOne({
+      where: {
+        [Op.and]: [
+          {
+            email: email
+          },
+          {
+            reset_code: reset_code
+          }
+        ]
+      }
+    })
+    if (isResetCodeMatch) {
+      return response(res, 'Reset Code is Same', {})
+    } else {
+      return response(res, 'Reset Code doesn\'t Same', {}, 400)
     }
   }
 }

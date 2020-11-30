@@ -1,9 +1,11 @@
+/* eslint-disable node/handle-callback-err */
 /* eslint-disable no-const-assign */
 /* eslint-disable camelcase */
 const bcrypt = require('bcryptjs')
 const response = require('../helpers/responseStandard')
 const { User } = require('../models')
 const joi = require('joi')
+const { Op } = require('sequelize')
 
 module.exports = {
   getDetailProfile: async (req, res) => {
@@ -59,6 +61,50 @@ module.exports = {
         return response(res, 'Atleast fill one column', {}, 400, false)
       }
       return response(res, 'User not found', {}, 404, false)
+    }
+  },
+  resetPassword: async (req, res) => {
+    const schema = joi.object({
+      email: joi.string(),
+      phone_number: joi.string(),
+      oldPassword: joi.string().required(),
+      newPassword: joi.string().required()
+    })
+    const { value: results, error } = schema.validate(req.body)
+    if (error) {
+      return response(res, 'Error', { error: error.message }, 400, false)
+    } else {
+      const { email, oldPassword, newPassword, phone_number } = results
+      try {
+        if (email || phone_number) {
+          const checkByEmail = await User.findOne({
+            where: { email: email },
+            attributes: ['id', 'password']
+          })
+          if (checkByEmail) {
+            await bcrypt.compare(oldPassword, checkByEmail.dataValues.password, async (err, result) => {
+              if (result) {
+                if (newPassword === oldPassword) {
+                  return response(res, 'New password can\'t be same with old password', {}, 400, false)
+                } else {
+                  try {
+                    const salt = await bcrypt.genSalt()
+                    const hashedPassword = await bcrypt.hash(newPassword, salt)
+                    checkByEmail.update({ password: hashedPassword })
+                    return response(res, 'Password reset successfully', {})
+                  } catch (e) {
+                    return response(res, e.message, {}, 500, false)
+                  }
+                }
+              } else {
+                return response(res, 'Password wrong!', {}, 400, false)
+              }
+            })
+          }
+        }
+      } catch (e) {
+        return response(res, e.message, {}, 500, false)
+      }
     }
   },
   deleteUser: async (req, res) => {

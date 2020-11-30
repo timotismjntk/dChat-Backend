@@ -7,5 +7,7 @@ route.post('/login', authController.login)
 route.post('/login/phone', authController.loginWithPhoneNumber)
 route.post('/signup', authController.signUp)
 route.post('/signup/phone', authController.signUpWithPhoneNumber)
+route.post('/reset', authController.getResetCode) // send reset code
+route.post('/verify/reset', authController.resetPasswordVerifiyResetCode) // verify reset code
 
 module.exports = route

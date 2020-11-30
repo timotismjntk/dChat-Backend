@@ -11,10 +11,10 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate (models) {
       // define association here
-      // Friendlist.belongsTo(models.User, {
-      //   foreignKey: 'user_id',
-      //   // as: 'Self'
-      // })
+      Friendlist.belongsTo(models.User, {
+        foreignKey: 'user_id',
+        as: 'Self'
+      })
       Friendlist.belongsTo(models.User, {
         foreignKey: 'friend_id',
         as: 'Friend'

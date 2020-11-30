@@ -4,6 +4,16 @@ const morgan = require('morgan')
 const cors = require('cors')
 
 const app = express()
+const server = require('http').createServer(app)
+
+// create instance
+const io = require('socket.io')(server, {})
+module.exports = io // export instance untuk bisa digunakan disetiap controller
+
+io.on('connection', socket => {
+  console.log('One user connected to server')
+})
+
 const { APP_PORT } = process.env
 
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -30,6 +40,6 @@ app.get('/', (req, res) => {
   })
 })
 
-app.listen(APP_PORT, () => {
+server.listen(APP_PORT, () => {
   console.log('listening on port ' + APP_PORT)
 })
