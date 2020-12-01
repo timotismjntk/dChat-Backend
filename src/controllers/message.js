@@ -1,3 +1,5 @@
+/* eslint-disable camelcase */
+/* eslint-disable no-undef */
 const response = require('../helpers/responseStandard')
 const qs = require('querystring')
 const {
@@ -9,6 +11,7 @@ const { Message, User } = require('../models')
 const multer = require('multer')
 const joi = require('joi')
 const Sequelize = require('sequelize')
+const messaging = require('../helpers/firebaseAdmin')
 const io = require('../App')
 
 module.exports = {
@@ -118,7 +121,7 @@ module.exports = {
       } catch (e) {
         return response(res, e.message, {}, 400, false)
       }
-      console.log(`berapa banyak: ${count}`)
+      console.log(message.dataValues)
       return response(res, 'List of All Messages', { results: message, pageInfo })
     } else {
       return response(res, 'You dont have any messages', { results: message })
@@ -260,8 +263,23 @@ module.exports = {
           isLatest: 1
         }
         const post = await Message.create(data)
-        io.emit(recipient_id.toString(), { sender_id, content }) // konfigurasi socket io di bagian backend untuk kirim pesan
-
+        io.emit(recipient_id.toString(), { sender_id, content }) // konfigurasi untuk socket io
+        const results = await User.findByPk(sender_id)
+        const { id, username, deviceToken } = results.dataValues
+        // admin.messaging().send({
+        if (id === sender_id) {
+          messaging.send({
+            token: 'dp6F4ALTSVOSMeYks9_8pd:APA91bGW8p4SOBv41Vb9mmoL8x0LXrU-pkcLV0BgKK4o1c15B0Jzn0U9BBCl_QO6xIUS4V_xOnW7rU_MSsUFj1cdCRQHBiCIlWMk82t_yIMzjwJLC2sAdfCb-4fhjR-54BogGaIH8JUc',
+            notification: {
+              title: `You got message from ${username}`,
+              body: content.length > 20 ? content.slice(0, 20).concat('...') : content
+            }
+          }).then((response) => {
+            console.log(`Successfully sent notification: ${response}`)
+          }).catch((err) => {
+            console.log(err.message)
+          })
+        }
         return response(res, 'Message sended successfully', { post })
       } catch (error) {
         return response(res, error.message, {}, 500, false)

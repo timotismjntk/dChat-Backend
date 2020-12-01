@@ -35,7 +35,8 @@ module.exports = (sequelize, DataTypes) => {
     unique_id: DataTypes.STRING,
     phone_number: DataTypes.STRING,
     last_active: DataTypes.DATE,
-    reset_code: DataTypes.STRING
+    reset_code: DataTypes.STRING,
+    deviceToken: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'User'

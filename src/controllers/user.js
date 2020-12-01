@@ -28,17 +28,18 @@ module.exports = {
       email: joi.string(),
       password: joi.string(),
       phone_number: joi.string(),
-      unique_id: joi.string()
+      unique_id: joi.string(),
+      deviceToken: joi.string()
     })
     const { value: results, error } = schema.validate(req.body)
     if (error) {
       return response(res, 'Error', { error: error.message }, 400, false)
     } else {
-      const { username, email, password, phone_number, unique_id } = results
+      const { username, email, password, phone_number, unique_id, deviceToken } = results
       const check = await User.findByPk(id)
       if (check) {
-        if (username || email || password || phone_number || unique_id) {
-          const data = { username, email, phone_number, unique_id }
+        if (username || email || password || phone_number || unique_id || deviceToken) {
+          const data = { username, email, phone_number, unique_id, deviceToken }
           try {
             await check.update(data)
             return response(res, 'User updated successfully', { check })
@@ -77,12 +78,12 @@ module.exports = {
       const { email, oldPassword, newPassword, phone_number } = results
       try {
         if (email || phone_number) {
-          const checkByEmail = await User.findOne({
-            where: { email: email },
+          const check = await User.findOne({
+            where: { [Op.or]: [{ email: email }, { phone_number: phone_number }] },
             attributes: ['id', 'password']
           })
-          if (checkByEmail) {
-            await bcrypt.compare(oldPassword, checkByEmail.dataValues.password, async (err, result) => {
+          if (check) {
+            await bcrypt.compare(oldPassword, check.dataValues.password, async (err, result) => {
               if (result) {
                 if (newPassword === oldPassword) {
                   return response(res, 'New password can\'t be same with old password', {}, 400, false)
@@ -90,7 +91,7 @@ module.exports = {
                   try {
                     const salt = await bcrypt.genSalt()
                     const hashedPassword = await bcrypt.hash(newPassword, salt)
-                    checkByEmail.update({ password: hashedPassword })
+                    check.update({ password: hashedPassword })
                     return response(res, 'Password reset successfully', {})
                   } catch (e) {
                     return response(res, e.message, {}, 500, false)

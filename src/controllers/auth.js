@@ -19,13 +19,14 @@ module.exports = {
   login: async (req, res) => {
     const schema = joi.object({
       email: joi.string().required(),
-      password: joi.string().required()
+      password: joi.string().required(),
+      deviceToken: joi.string().required()
     })
     const { value: results, error } = schema.validate(req.body)
     if (error) {
       return response(res, 'Error', { error: error.message }, 400, false)
     } else {
-      const { email, password } = results
+      const { email, password, deviceToken } = results
       try {
         const isExist = await User.findOne({ where: { email: email } })
         if (isExist) {
@@ -34,7 +35,8 @@ module.exports = {
             try {
               await bcrypt.compare(password, isExist.dataValues.password, (err, result) => {
                 if (result) {
-                  jwt.sign({ id: isExist.dataValues.id }, APP_KEY, async (err, token) => {
+                  const { id, deviceToken } = isExist.dataValues
+                  jwt.sign({ id: id, deviceToken: deviceToken }, APP_KEY, async (err, token) => {
                     try {
                       await isExist.update({ last_active: new Date() })
                     } catch (e) {
