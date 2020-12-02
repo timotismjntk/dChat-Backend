@@ -266,7 +266,7 @@ module.exports = {
         io.emit(recipient_id.toString(), { sender_id, content }) // konfigurasi untuk socket io
         // admin.messaging().send({
         const results = await User.findByPk(sender_id)
-        const { id, usernames, deviceTokens } = results.dataValues
+        const { id, username: usernames, deviceToken: deviceTokens } = results.dataValues
         if (id === sender_id) {
           messaging(deviceTokens, usernames, content)
         } else {
