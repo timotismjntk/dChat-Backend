@@ -265,10 +265,10 @@ module.exports = {
         const post = await Message.create(data)
         io.emit(recipient_id.toString(), { sender_id, content }) // konfigurasi untuk socket io
         // admin.messaging().send({
-        const results = await User.findByPk(recipient_id)
-        const { id, username, deviceToken } = results.dataValues
+        const results = await User.findByPk(sender_id)
+        const { id, usernames, deviceTokens } = results.dataValues
         if (id === sender_id) {
-          messaging(deviceToken, username, content)
+          messaging(deviceTokens, usernames, content)
         } else {
           const senderResult = await User.findByPk(sender_id)
           const { username, deviceToken } = senderResult.dataValues
