@@ -7,7 +7,7 @@ admin.initializeApp({
 })
 
 const messaging = (deviceToken, username, content) => {
-  console.log('ini dia' + deviceToken)
+  console.log('ini dia ' + deviceToken)
   admin.messaging().send({
     token: deviceToken,
     notification: {
