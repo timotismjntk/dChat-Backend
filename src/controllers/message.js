@@ -264,21 +264,17 @@ module.exports = {
         }
         const post = await Message.create(data)
         io.emit(recipient_id.toString(), { sender_id, content }) // konfigurasi untuk socket io
-        const results = await User.findByPk(sender_id)
-        const { id, username, deviceToken } = results.dataValues
         // admin.messaging().send({
+        const results = await User.findByPk(recipient_id)
+        const { id, username, deviceToken } = results.dataValues
         if (id === sender_id) {
-          messaging.send({
-            token: 'dp6F4ALTSVOSMeYks9_8pd:APA91bGW8p4SOBv41Vb9mmoL8x0LXrU-pkcLV0BgKK4o1c15B0Jzn0U9BBCl_QO6xIUS4V_xOnW7rU_MSsUFj1cdCRQHBiCIlWMk82t_yIMzjwJLC2sAdfCb-4fhjR-54BogGaIH8JUc',
-            notification: {
-              title: `You got message from ${username}`,
-              body: content.length > 20 ? content.slice(0, 20).concat('...') : content
-            }
-          }).then((response) => {
-            console.log(`Successfully sent notification: ${response}`)
-          }).catch((err) => {
-            console.log(err.message)
-          })
+          messaging(deviceToken, username, content)
+        } else {
+          const senderResult = await User.findByPk(sender_id)
+          const { username, deviceToken } = senderResult.dataValues
+          console.log(deviceToken)
+          // helper firebase
+          messaging(deviceToken, username, content)
         }
         return response(res, 'Message sended successfully', { post })
       } catch (error) {

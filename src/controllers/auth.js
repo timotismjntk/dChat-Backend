@@ -35,10 +35,10 @@ module.exports = {
             try {
               await bcrypt.compare(password, isExist.dataValues.password, (err, result) => {
                 if (result) {
-                  const { id, deviceToken } = isExist.dataValues
+                  const { id } = isExist.dataValues
                   jwt.sign({ id: id, deviceToken: deviceToken }, APP_KEY, async (err, token) => {
                     try {
-                      await isExist.update({ last_active: new Date() })
+                      await isExist.update({ last_active: new Date(), deviceToken: deviceToken })
                     } catch (e) {
 
                     }

@@ -6,6 +6,20 @@ admin.initializeApp({
   databaseURL: 'https://dchat-e3451.firebaseio.com'
 })
 
-const messaging = admin.messaging()
+const messaging = (deviceToken, username, content) => {
+  console.log('ini dia' + deviceToken)
+  admin.messaging().send({
+    token: deviceToken,
+    notification: {
+      title: `You got message from ${username}`,
+      body: content.length > 20 ? content.slice(0, 20).concat('...') : content
+    }
+    // priority: 'high'
+  }).then((response) => {
+    console.log(`Successfully sent notification: ${response}`)
+  }).catch((err) => {
+    console.log(err.message)
+  })
+}
 
 module.exports = messaging
