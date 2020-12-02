@@ -268,12 +268,16 @@ module.exports = {
         const findSelf = await User.findByPk(sender_id)
         const { id } = findSelf.dataValues
         if (id === sender_id) {
-          const senderResult = await User.findByPk(recipient_id)
-          const { username, deviceToken } = senderResult.dataValues
+          const recipientResult = await User.findByPk(recipient_id)
+          const { deviceToken } = recipientResult.dataValues
+          const senderResult = await User.findByPk(sender_id)
+          const { username } = senderResult.dataValues
           messaging(deviceToken, username, content)
         } else {
           const senderResult = await User.findByPk(sender_id)
-          const { username, deviceToken } = senderResult.dataValues
+          const { deviceToken } = senderResult.dataValues
+          const recipientResult = await User.findByPk(recipient_id)
+          const { username } = recipientResult.dataValues
           console.log(deviceToken)
           // helper firebase
           messaging(deviceToken, username, content)
