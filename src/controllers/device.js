@@ -53,7 +53,7 @@ module.exports = {
     const { id } = req.user
     const results = await User.findByPk(id)
     if (results) {
-      await User.update({ deviceToken: '' })
+      await results.update({ deviceToken: '' })
       return response(res, 'Device token is removed', {}, 200, true)
     } else {
       return response(res, 'Users not found', {}, 404, false)
