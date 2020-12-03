@@ -49,23 +49,33 @@ module.exports = {
       }
     }
   },
-  checkDeviceToken: async (req, res, next) => {
-    const { id, deviceToken } = req.user
-    const schema = joi.object({
-      tokenDevice: joi.string(),
-    })
-    const { value: results, error } = schema.validate(req.body)
-    if (error) {
-      return response(res, 'Error', { error: error.message }, 400, false)
+  removeDeviceToken: async (req, res) => {
+    const { id } = req.user
+    const results = await User.findByPk(id)
+    if (results) {
+      await User.update({ deviceToken: '' })
+      return response(res, 'Device token is removed', {}, 200, true)
     } else {
-      const { tokenDevice } = results
-      if (deviceToken) {
-        const search = await User.findByPk(id)
-        if (search) {
-          search.update({})
-        }
-        const { deviceToken } = search.dataValues
-      }
+      return response(res, 'Users not found', {}, 404, false)
     }
   }
+  // checkDeviceToken: async (req, res, next) => {
+  //   const { id, deviceToken } = req.user
+  //   const schema = joi.object({
+  //     tokenDevice: joi.string(),
+  //   })
+  //   const { value: results, error } = schema.validate(req.body)
+  //   if (error) {
+  //     return response(res, 'Error', { error: error.message }, 400, false)
+  //   } else {
+  //     const { tokenDevice } = results
+  //     if (deviceToken) {
+  //       const search = await User.findByPk(id)
+  //       if (search) {
+  //         search.update({})
+  //       }
+  //       const { deviceToken } = search.dataValues
+  //     }
+  //   }
+  // }
 }

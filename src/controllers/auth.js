@@ -38,7 +38,7 @@ module.exports = {
                   const { id } = isExist.dataValues
                   jwt.sign({ id: id, deviceToken: deviceToken }, APP_KEY, async (err, token) => {
                     try {
-                      await isExist.update({ last_active: new Date(), deviceToken: deviceToken })
+                      await isExist.update({ last_active: new Date() })
                     } catch (e) {
 
                     }

@@ -27,11 +27,13 @@ const userRoute = require('./routes/user')
 const authRoute = require('./routes/auth')
 const messageRoute = require('./routes/message')
 const contactRoute = require('./routes/contact')
+const deviceRoute = require('./routes/device')
 
 app.use('/auth', authRoute)
 app.use('/users', userRoute)
 app.use('/message', messageRoute)
 app.use('/contact', contactRoute)
+app.use('/device', deviceRoute)
 
 app.get('/', (req, res) => {
   res.send({
