@@ -131,22 +131,23 @@ module.exports = {
               const results = await User.create(data)
               return response(res, 'User created successfully', { results })
             }
-          } else {
-            const data = {
-              username,
-              password: encryptPassword,
-              phone_number
-            }
-            const isExist = await User.findOne({ where: { password } })
-            console.log(isExist.length)
-            if (isExist) {
-              return response(res, 'Error phone number has been registered, please login with it,', {}, 400, false)
-            } else {
-              console.log(data)
-              const results = await User.create(data)
-              return response(res, 'User created successfully', { results })
-            }
           }
+          //  else {
+          //   const data = {
+          //     username,
+          //     password: encryptPassword,
+          //     phone_number
+          //   }
+          //   const isExist = await User.findOne({ where: { password } })
+          //   console.log(isExist.length)
+          //   if (isExist) {
+          //     return response(res, 'Error phone number has been registered, please login with it,', {}, 400, false)
+          //   } else {
+          //     console.log(data)
+          //     const results = await User.create(data)
+          //     return response(res, 'User created successfully', { results })
+          //   }
+          // }
         } else {
           return response(res, 'please input phone number', 400, false)
         }
