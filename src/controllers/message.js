@@ -273,9 +273,9 @@ module.exports = {
           const senderResult = await User.findByPk(sender_id)
           const { username } = senderResult.dataValues
           console.log(senderResult)
-          if (deviceToken.length > 0) {
-            messaging(deviceToken, username, content)
-          }
+          // if (deviceToken.length > 0) {
+          //   messaging(deviceToken, username, content)
+          // }
         } else {
           const senderResult = await User.findByPk(sender_id)
           const { deviceToken } = senderResult.dataValues
