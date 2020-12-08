@@ -84,7 +84,7 @@ module.exports = {
         }
         const isExist = await User.findOne({ where: { email: email } })
         // console.log(isExist === null)
-        if (isExist !== null) {
+        if (isExist) {
           return response(res, 'Email has been used', {}, 400, false)
         } else {
           console.log(data)
