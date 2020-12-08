@@ -111,43 +111,47 @@ module.exports = {
         return response(res, err.message, {}, 401, false)
       }
       try {
-        const encryptPassword = await bcrypt.hash(password, await bcrypt.genSalt())
-        if (req.file) {
-          const picture = `uploads/${req.file.filename}`
-          const data = {
-            username,
-            password: encryptPassword,
-            phone_number,
-            profile_image: picture
-          }
-          const isExist = await User.findOne({ where: { phone_number } })
-          // console.log(isExist === null)
-          if (isExist) {
-            if (req.file) {
-              fs.unlinkSync('assets/uploads/' + req.file.filename)
-              return response(res, 'Error phone number has been registered, please login with it,', {}, 400, false)
+        if (phone_number) {
+          const encryptPassword = await bcrypt.hash(password, await bcrypt.genSalt())
+          if (req.file) {
+            const picture = `uploads/${req.file.filename}`
+            const data = {
+              username,
+              password: encryptPassword,
+              phone_number,
+              profile_image: picture
             }
-            return response(res, 'Error phone number has been registered, please login with it,', {}, 400, false)
+            const isExist = await User.findOne({ where: { phone_number } })
+            // console.log(isExist === null)
+            if (isExist) {
+              if (req.file) {
+                fs.unlinkSync('assets/uploads/' + req.file.filename)
+                return response(res, 'Error phone number has been registered, please login with it,', {}, 400, false)
+              }
+              return response(res, 'Error phone number has been registered, please login with it,', {}, 400, false)
+            } else {
+              console.log(data)
+              const results = await User.create(data)
+              return response(res, 'User created successfully', { results })
+            }
           } else {
-            console.log(data)
-            const results = await User.create(data)
-            return response(res, 'User created successfully', { results })
+            const data = {
+              username,
+              password: encryptPassword,
+              phone_number
+            }
+            const isExist = await User.findOne({ where: { password } })
+            // console.log(isExist === null)
+            if (isExist) {
+              return response(res, 'Error phone number has been registered, please login with it,', {}, 400, false)
+            } else {
+              console.log(data)
+              const results = await User.create(data)
+              return response(res, 'User created successfully', { results })
+            }
           }
         } else {
-          const data = {
-            username,
-            password: encryptPassword,
-            phone_number
-          }
-          const isExist = await User.findOne({ where: { password } })
-          // console.log(isExist === null)
-          if (isExist !== null) {
-            return response(res, 'Error phone number has been registered, please login with it,', {}, 400, false)
-          } else {
-            console.log(data)
-            const results = await User.create(data)
-            return response(res, 'User created successfully', { results })
-          }
+          return response(res, 'please input phone number', 400, false);
         }
       } catch (e) {
         fs.unlinkSync('assets/uploads/' + req.file.filename)
