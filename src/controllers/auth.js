@@ -122,8 +122,11 @@ module.exports = {
           }
           const isExist = await User.findOne({ where: { phone_number } })
           // console.log(isExist === null)
-          if (isExist !== null) {
-            fs.unlinkSync('assets/uploads/' + req.file.filename)
+          if (isExist) {
+            if (req.file) {
+              fs.unlinkSync('assets/uploads/' + req.file.filename)
+              return response(res, 'Error phone number has been registered, please login with it,', {}, 400, false)
+            }
             return response(res, 'Error phone number has been registered, please login with it,', {}, 400, false)
           } else {
             console.log(data)
