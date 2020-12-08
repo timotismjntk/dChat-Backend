@@ -12,7 +12,8 @@ const response = require('../helpers/responseStandard')
 const { Op } = require('sequelize')
 
 const {
-  APP_KEY
+  APP_KEY,
+  TOKEN_EXP
 } = process.env
 
 module.exports = {
@@ -36,13 +37,13 @@ module.exports = {
               await bcrypt.compare(password, isExist.dataValues.password, (err, result) => {
                 if (result) {
                   const { id } = isExist.dataValues
-                  jwt.sign({ id: id, deviceToken: deviceToken }, APP_KEY, async (err, token) => {
+                  jwt.sign({ id: id, deviceToken: deviceToken }, APP_KEY, { expiresIn: TOKEN_EXP }, async (err, token) => {
                     try {
                       await isExist.update({ last_active: new Date() })
                     } catch (e) {
 
                     }
-                    return response(res, { token }, {}, 200, true)
+                    return response(res, 'Login succesfully', { token }, 200, true)
                   })
                 } else {
                   return response(res, 'Wrong email or password', {}, 400, false)

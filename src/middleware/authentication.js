@@ -32,5 +32,24 @@ module.exports = {
       console.log(role)
       next()
     }
+  },
+  checkExpiredToken: async (req, res, next) => {
+    const { authorization } = req.headers
+    const token = authorization.slice(7, authorization.length)
+    try {
+      const payload = await jwt.verify(token, APP_KEY)
+      if (payload) {
+        console.log('token still valid')
+        return responseStandard(res, 'token still valid', { payload })
+      } else {
+        return responseStandard(res, 'Unauthorized', {}, 401, false)
+      }
+    } catch (e) {
+      if (e.message === 'jwt expired') {
+        return responseStandard(res, 'Your session is expired, please log in again', {}, 401, false)
+      } else {
+        return responseStandard(res, e, {}, 500, false)
+      }
+    }
   }
 }
