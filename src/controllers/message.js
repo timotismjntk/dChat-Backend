@@ -262,32 +262,36 @@ module.exports = {
           last_sent: new Date().getTime(),
           isLatest: 1
         }
-        await io.emit(recipient_id.toString(), { sender_id, message: content }) // konfigurasi untuk socket io
         const post = await Message.create(data)
         // admin.messaging().send({
-        const findSelf = await User.findByPk(sender_id)
-        const { id } = findSelf.dataValues
-        if (id === sender_id) {
-          const recipientResult = await User.findByPk(recipient_id)
-          const { deviceToken } = recipientResult.dataValues
-          const senderResult = await User.findByPk(sender_id)
-          const { username } = senderResult.dataValues
-          console.log(senderResult)
-          if (deviceToken.length > 0) {
-            messaging(deviceToken, username, content)
+        if (post) {
+          io.emit(recipient_id.toString(), { sender_id, content }) // konfigurasi untuk socket io
+          const findSelf = await User.findByPk(sender_id)
+          const { id } = findSelf.dataValues
+          if (id === sender_id) {
+            const recipientResult = await User.findByPk(recipient_id)
+            const { deviceToken } = recipientResult.dataValues
+            const senderResult = await User.findByPk(sender_id)
+            const { username } = senderResult.dataValues
+            console.log(senderResult)
+            if (deviceToken.length > 0) {
+              messaging(deviceToken, username, content)
+            }
+          } else {
+            const senderResult = await User.findByPk(sender_id)
+            const { deviceToken } = senderResult.dataValues
+            const recipientResult = await User.findByPk(recipient_id)
+            const { username } = recipientResult.dataValues
+            console.log(recipientResult)
+            // helper firebase
+            if (deviceToken.length > 0) {
+              messaging(deviceToken, username, content)
+            }
           }
+          return response(res, 'Message sended successfully', { post })
         } else {
-          const senderResult = await User.findByPk(sender_id)
-          const { deviceToken } = senderResult.dataValues
-          const recipientResult = await User.findByPk(recipient_id)
-          const { username } = recipientResult.dataValues
-          console.log(recipientResult)
-          // helper firebase
-          if (deviceToken.length > 0) {
-            messaging(deviceToken, username, content)
-          }
+          return response(res, 'Failed to send message', {}, 400, false)
         }
-        return response(res, 'Message sended successfully', { post })
       } catch (error) {
         return response(res, error.message, {}, 500, false)
       }
