@@ -273,7 +273,9 @@ module.exports = {
           const senderResult = await User.findByPk(sender_id)
           const { username } = senderResult.dataValues
           console.log(senderResult)
-          messaging(deviceToken, username, content)
+          if (deviceToken.length > 0) {
+            messaging(deviceToken, username, content)
+          }
         } else {
           const senderResult = await User.findByPk(sender_id)
           const { deviceToken } = senderResult.dataValues
@@ -281,7 +283,9 @@ module.exports = {
           const { username } = recipientResult.dataValues
           console.log(recipientResult)
           // helper firebase
-          messaging(deviceToken, username, content)
+          if (deviceToken.length > 0) {
+            messaging(deviceToken, username, content)
+          }
         }
         return response(res, 'Message sended successfully', { post })
       } catch (error) {
