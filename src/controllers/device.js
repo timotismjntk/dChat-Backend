@@ -23,6 +23,7 @@ module.exports = {
             attributes: ['id', 'password']
           })
           if (check) {
+            console.log(deviceToken)
             check.update({ deviceToken: deviceToken })
             return response(res, 'Device token is set', {}, 200, true)
           } else {
