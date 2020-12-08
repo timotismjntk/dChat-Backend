@@ -262,7 +262,7 @@ module.exports = {
           last_sent: new Date().getTime(),
           isLatest: 1
         }
-        io.emit(recipient_id.toString(), { sender_id, content }) // konfigurasi untuk socket io
+        await io.emit(recipient_id.toString(), { sender_id, message: content }) // konfigurasi untuk socket io
         const post = await Message.create(data)
         // admin.messaging().send({
         const findSelf = await User.findByPk(sender_id)
@@ -273,9 +273,9 @@ module.exports = {
           const senderResult = await User.findByPk(sender_id)
           const { username } = senderResult.dataValues
           console.log(senderResult)
-          // if (deviceToken.length > 0) {
-          //   messaging(deviceToken, username, content)
-          // }
+          if (deviceToken.length > 0) {
+            messaging(deviceToken, username, content)
+          }
         } else {
           const senderResult = await User.findByPk(sender_id)
           const { deviceToken } = senderResult.dataValues
