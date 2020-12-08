@@ -272,14 +272,14 @@ module.exports = {
           const { deviceToken } = recipientResult.dataValues
           const senderResult = await User.findByPk(sender_id)
           const { username } = senderResult.dataValues
+          console.log(senderResult)
           messaging(deviceToken, username, content)
-          console.log(deviceToken)
         } else {
           const senderResult = await User.findByPk(sender_id)
           const { deviceToken } = senderResult.dataValues
           const recipientResult = await User.findByPk(recipient_id)
           const { username } = recipientResult.dataValues
-          console.log(deviceToken)
+          console.log(recipientResult)
           // helper firebase
           messaging(deviceToken, username, content)
         }
