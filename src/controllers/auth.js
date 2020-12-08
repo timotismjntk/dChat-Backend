@@ -138,7 +138,7 @@ module.exports = {
               phone_number
             }
             const isExist = await User.findOne({ where: { password } })
-            console.log(isExist)
+            console.log(isExist.length)
             if (isExist) {
               return response(res, 'Error phone number has been registered, please login with it,', {}, 400, false)
             } else {
