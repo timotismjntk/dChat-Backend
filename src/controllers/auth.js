@@ -163,13 +163,14 @@ module.exports = {
   loginWithPhoneNumber: async (req, res) => {
     const schema = joi.object({
       phone_number: joi.string().required(),
-      password: joi.string().required()
+      password: joi.string().required(),
+      deviceToken: joi.string().required()
     })
     const { value: results, error } = schema.validate(req.body)
     if (error) {
       return response(res, 'Error', { error: error.message }, 400, false)
     } else {
-      const { phone_number, password } = results
+      const { phone_number, password, deviceToken } = results
       try {
         const isExist = await User.findOne({ where: { phone_number } })
         if (isExist) {
@@ -177,7 +178,7 @@ module.exports = {
             try {
               await bcrypt.compare(password, isExist.dataValues.password, (err, result) => {
                 if (result) {
-                  jwt.sign({ id: isExist.dataValues.id }, APP_KEY, async (err, token) => {
+                  jwt.sign({ id: isExist.dataValues.id, deviceToken: deviceToken }, APP_KEY, async (err, token) => {
                     try {
                       await isExist.update({ last_active: new Date() })
                     } catch (e) {
