@@ -172,7 +172,7 @@ module.exports = {
         } else {
           const data = {
             user_id: id,
-            friend_id: contactId
+            friend_id: Number(contactId)
           }
           const added = await Friendlist.create(data)
           return response(res, 'contact added as friend successfully', { added })
