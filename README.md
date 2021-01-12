@@ -5,14 +5,14 @@
 
 <br />
 <p align="center">
-  <a href="https://github.com/timotismjntk/Mobile-News-Backend">
-    <img src="https://raw.githubusercontent.com/timotismjntk/RuangDev/master/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png" alt="Logo" width="120" height="120">
+  <a href="https://github.com/timotismjntk/dChat-Backend">
+    <img src="https://raw.githubusercontent.com/timotismjntk/dChat/master/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png" alt="Logo" width="120" height="120">
   </a>
 
-  <h3 align="center">Ruang Dev - Backend</h3>
+  <h3 align="center">dChat - Backend</h3>
 
   <p align="center">
-    Ruang Dev - Backend API for Mobile App
+    dChat - Backend API for Mobile App
     <br />
 </p>
 
@@ -56,12 +56,14 @@ This is Backend for mobile App RuangDev.
 * mysql2
 * sequelize
 * uuid
+* firebase-admin
+* socket.io
 
 
 <!-- GETTING STARTED -->
 ## Getting Started
 
-This is a simple backend for RuangDev App.
+This is a simple backend for dChat App.
 
 ## Prerequisites
 
@@ -75,7 +77,7 @@ This is list things you need to use the packages and how to install them.
 
 1. Clone the repo
    ```sh
-   git clone https://github.com/timotismjntk/Mobile-News-Backend.git
+   git clone https://github.com/timotismjntk/dChat-Backend.git
    ```
 2. Install Depedencies
    ```sh
@@ -95,18 +97,18 @@ This is list things you need to use the packages and how to install them.
    ```
 <!-- API -->
 ## Api Docs
-See the route of Api with [Postman Docs API](https://www.getpostman.com/collections/ed46341b75cd9a101d38)
+See the route of Api with [Postman Docs API](https://www.getpostman.com/collections/457f257aa001ae590c68)
 
 <!-- CONTACT -->
 ## Contact
-Project Link: [https://github.com/timotismjntk/Mobile-News-Backend](https://github.com/timotismjntk/Mobile-News-Backend)
+Project Link: [https://github.com/timotismjntk/dChat-Backend](https://github.com/timotismjntk/dChat-Backend)
 
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[forks-shield]: https://img.shields.io/github/forks/timotismjntk/Mobile-News-Backend
-[forks-url]: https://github.com/timotismjntk/Mobile-News-Backend/network/members
-[stars-shield]: https://img.shields.io/github/stars/timotismjntk/Mobile-News-Backend
-[stars-url]: https://github.com/timotismjntk/Mobile-News-Backend/stargazers
-[issues-shield]: https://img.shields.io/github/issues/timotismjntk/Mobile-News-Backend
-[issues-url]: https://github.com/timotismjntk/Mobile-News-Backend/issues
+[forks-shield]: https://img.shields.io/github/forks/timotismjntk/dChat-Backend
+[forks-url]: https://github.com/timotismjntk/dChat-Backend/network/members
+[stars-shield]: https://img.shields.io/github/stars/timotismjntk/dChat-Backend
+[stars-url]: https://github.com/timotismjntk/dChat-Backend/stargazers
+[issues-shield]: https://img.shields.io/github/issues/timotismjntk/dChat-Backend
+[issues-url]: https://github.com/timotismjntk/dChat-Backend/issues
