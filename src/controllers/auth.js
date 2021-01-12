@@ -183,7 +183,7 @@ module.exports = {
                     } catch (e) {
 
                     }
-                    return response(res, { token }, {}, 200, true)
+                    return response(res, 'Login succesfully', { token }, 200, true)
                   })
                 } else {
                   return response(res, 'Old Password is wrong!', {}, 400, false)
