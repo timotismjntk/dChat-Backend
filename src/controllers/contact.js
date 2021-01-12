@@ -74,35 +74,34 @@ module.exports = {
       searchValue = search || ''
     }
     const results = await Friendlist.findAll({
-      // include: [{
-      //   model: User,
-      //   as: 'Friend',
-      //   attributes: {
-      //     exclude: ['password', 'email', 'reset_code']
-      //   },
-      //   where: {
-      //     [Op.and]: [
-      //       {
-      //         [Op.or]: [
-      //           {
-      //             username: { [Op.like]: `%${searchValue}%` }
-      //           },
-      //           {
-      //             phone_number: { [Op.like]: `%${searchValue}%` }
-      //           }
-      //         ]
-      //       }
-      //     ]
-      //   }
-      // }
-      // {
-      //   model: User,
-      //   as: 'Self',
-      //   attributes: {
-      //     exclude: ['password', 'email', 'reset_code']
-      //   }
-      // }
-      // ],
+      include: [{
+        model: User,
+        as: 'Friend',
+        attributes: {
+          exclude: ['password', 'email', 'reset_code']
+        },
+        where: {
+          [Op.and]: [
+            {
+              [Op.or]: [
+                {
+                  username: { [Op.like]: `%${searchValue}%` }
+                },
+                {
+                  phone_number: { [Op.like]: `%${searchValue}%` }
+                }
+              ]
+            }
+          ]
+        }
+      }, {
+        model: User,
+        as: 'Self',
+        attributes: {
+          exclude: ['password', 'email', 'reset_code']
+        }
+      }
+      ],
       where: {
         [Op.or]: [
           {
