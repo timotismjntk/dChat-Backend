@@ -109,13 +109,14 @@ module.exports = {
           ]
         }
       },
-      {
-        model: User,
-        as: 'Self',
-        attributes: {
-          exclude: ['password', 'email', 'reset_code']
-        }
-      }],
+      // {
+      //   model: User,
+      //   as: 'Self',
+      //   attributes: {
+      //     exclude: ['password', 'email', 'reset_code']
+      //   }
+      // }
+    ],
       order: [['id', 'DESC']]
       // group: ['friend_id']
     })
