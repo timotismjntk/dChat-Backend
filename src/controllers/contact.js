@@ -74,20 +74,6 @@ module.exports = {
       searchValue = search || ''
     }
     const results = await Friendlist.findAll({
-      where: {
-        [Op.and]: [
-          {
-            [Op.or]: [
-              {
-                user_id: id
-              },
-              {
-                friend_id: id
-              }
-            ]
-          }
-        ]
-      },
       include: [{
         model: User,
         as: 'Friend',
@@ -108,7 +94,7 @@ module.exports = {
             }
           ]
         }
-      },
+      }
       // {
       //   model: User,
       //   as: 'Self',
@@ -116,7 +102,17 @@ module.exports = {
       //     exclude: ['password', 'email', 'reset_code']
       //   }
       // }
-    ],
+      ],
+      where: {
+        [Op.or]: [
+          {
+            user_id: id
+          },
+          {
+            friend_id: id
+          }
+        ]
+      },
       order: [['id', 'DESC']]
       // group: ['friend_id']
     })
