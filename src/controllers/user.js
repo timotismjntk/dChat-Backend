@@ -39,12 +39,23 @@ module.exports = {
       const check = await User.findByPk(id)
       if (check) {
         if (username || email || password || phone_number || unique_id || deviceToken) {
-          const data = { username, email, phone_number, unique_id, deviceToken }
+          const data = { username, email, unique_id, deviceToken }
           try {
             await check.update(data)
             return response(res, 'User updated successfully', { check })
           } catch (err) {
             return response(res, err.message, {}, 400, false)
+          }
+        } else if (phone_number) {
+          const isExist = await User.findOne({ where: { phone_number } })
+          if (isExist) {
+            console.log(isExist.dataValues)
+            if (isExist) {
+              return response(res, 'You can\'t use this phone number', {}, 400, false)
+            }
+          } else {
+            await check.update({ phone_number })
+            return response(res, 'User updated successfully', { check })
           }
         } else if (password) {
           try {
