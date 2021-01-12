@@ -90,20 +90,20 @@ module.exports = {
         attributes: {
           exclude: ['password', 'email', 'reset_code']
         },
-        // where: {
-        //   [Op.and]: [
-        //     {
-        //       [Op.or]: [
-        //         {
-        //           username: { [Op.like]: `%${searchValue}%` }
-        //         },
-        //         {
-        //           phone_number: { [Op.like]: `%${searchValue}%` }
-        //         }
-        //       ]
-        //     }
-        //   ]
-        // }
+        where: {
+          [Op.and]: [
+            {
+              [Op.or]: [
+                {
+                  username: { [Op.like]: `%${searchValue}%` }
+                },
+                {
+                  phone_number: { [Op.like]: `%${searchValue}%` }
+                }
+              ]
+            }
+          ]
+        }
       },
       {
         model: User,
