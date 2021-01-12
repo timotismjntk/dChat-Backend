@@ -99,6 +99,9 @@ module.exports = {
         as: 'Self',
         attributes: {
           exclude: ['password', 'email', 'reset_code']
+        },
+        where: {
+          id: id
         }
       }
       ],
