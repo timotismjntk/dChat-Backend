@@ -94,16 +94,14 @@ module.exports = {
             }
           ]
         }
-      }, {
-        model: User,
-        as: 'Self',
-        attributes: {
-          exclude: ['password', 'email', 'reset_code']
-        },
-        where: {
-          id: id
-        }
-      }
+      },
+      // {
+      //   model: User,
+      //   as: 'Self',
+      //   attributes: {
+      //     exclude: ['password', 'email', 'reset_code']
+      //   }
+      // }
       ],
       where: {
         [Op.or]: [
