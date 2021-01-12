@@ -102,7 +102,7 @@ module.exports = {
       //     exclude: ['password', 'email', 'reset_code']
       //   }
       // }
-      ],
+      // ],
       where: {
         [Op.or]: [
           {
