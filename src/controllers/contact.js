@@ -75,12 +75,16 @@ module.exports = {
     }
     const results = await Friendlist.findAll({
       where: {
-        [Op.or]: [
+        [Op.and]: [
           {
-            user_id: id
-          },
-          {
-            friend_id: id
+            [Op.or]: [
+              {
+                user_id: id
+              },
+              {
+                friend_id: id
+              }
+            ]
           }
         ]
       },
@@ -112,7 +116,7 @@ module.exports = {
           exclude: ['password', 'email', 'reset_code']
         }
       }],
-      order: [['id', 'DESC']],
+      order: [['id', 'DESC']]
       // group: ['friend_id']
     })
 
