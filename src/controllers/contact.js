@@ -81,16 +81,12 @@ module.exports = {
           exclude: ['password', 'email', 'reset_code']
         },
         where: {
-          [Op.and]: [
+          [Op.or]: [
             {
-              [Op.or]: [
-                {
-                  username: { [Op.like]: `%${searchValue}%` }
-                },
-                {
-                  phone_number: { [Op.like]: `%${searchValue}%` }
-                }
-              ]
+              username: { [Op.like]: `%${searchValue}%` }
+            },
+            {
+              phone_number: { [Op.like]: `%${searchValue}%` }
             }
           ]
         }
@@ -99,20 +95,6 @@ module.exports = {
         as: 'Self',
         attributes: {
           exclude: ['password', 'email', 'reset_code']
-        },
-        where: {
-          [Op.and]: [
-            {
-              [Op.or]: [
-                {
-                  username: { [Op.like]: `%${searchValue}%` }
-                },
-                {
-                  phone_number: { [Op.like]: `%${searchValue}%` }
-                }
-              ]
-            }
-          ]
         }
       }
       ],
@@ -132,8 +114,50 @@ module.exports = {
 
     if (results.length > 0) {
       return response(res, 'List of All Contact', { results })
+    } else {
+      const searchIfNull = await Friendlist.findAll({
+        include: [{
+          model: User,
+          as: 'Friend',
+          attributes: {
+            exclude: ['password', 'email', 'reset_code']
+          }
+        }, {
+          model: User,
+          as: 'Self',
+          attributes: {
+            exclude: ['password', 'email', 'reset_code']
+          },
+          where: {
+            [Op.or]: [
+              {
+                username: { [Op.like]: `%${searchValue}%` }
+              },
+              {
+                phone_number: { [Op.like]: `%${searchValue}%` }
+              }
+            ]
+          }
+        }
+        ],
+        where: {
+          [Op.or]: [
+            {
+              user_id: id
+            },
+            {
+              friend_id: id
+            }
+          ]
+        },
+        order: [['id', 'DESC']]
+        // group: ['friend_id']
+      })
+      if (searchIfNull.length > 0) {
+        return response(res, 'List of All Contact', { results: searchIfNull })
+      }
+      return response(res, 'You don\'t have any contacts', { results: searchIfNull })
     }
-    return response(res, 'You don\'t have any contacts', { results })
   },
   getContactById: async (req, res) => {
     const { id } = req.params
