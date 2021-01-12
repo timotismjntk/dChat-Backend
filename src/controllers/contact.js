@@ -113,7 +113,7 @@ module.exports = {
         }
       }],
       order: [['id', 'DESC']],
-      group: ['friend_id']
+      // group: ['friend_id']
     })
 
     if (results.length > 0) {
